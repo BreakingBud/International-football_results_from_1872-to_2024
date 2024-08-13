@@ -75,6 +75,13 @@ def prepare_world_cup_data(year):
     # Extract final match stats
     final_match = wc_df.iloc[-1] if not wc_df.empty else None
     
+    # Handle NaN winner or penalty shootout cases
+    if final_match is not None and pd.isna(final_match['winner']):
+        if final_match['shootout']:
+            final_match['winner'] = f"Winner (Penalties): {final_match['home_team'] if final_match['home_score'] > final_match['away_score'] else final_match['away_team']}"
+        else:
+            final_match['winner'] = 'Draw'
+    
     return total_matches, total_goals, total_teams, avg_goals_per_game, final_match
 
 # Set up the sidebar menu
@@ -155,8 +162,9 @@ elif menu == "Head-to-Head Analysis":
 elif menu == "World Cup Analysis":
     st.title("World Cup Analysis")
 
-    # Year selection
-    year = st.selectbox('Select Year of World Cup', sorted(results_df[results_df['tournament'] == 'FIFA World Cup']['date'].dt.year.unique()))
+    # Year selection - only show years where FIFA World Cup was held
+    world_cup_years = sorted(results_df[results_df['tournament'] == 'FIFA World Cup']['date'].dt.year.unique())
+    year = st.selectbox('Select Year of World Cup', world_cup_years)
 
     # Get World Cup statistics for the selected year
     total_matches, total_goals, total_teams, avg_goals_per_game, final_match = prepare_world_cup_data(year)
@@ -176,4 +184,4 @@ elif menu == "World Cup Analysis":
             st.markdown(f"**Date:** {final_match['date'].strftime('%Y-%m-%d')}")
             st.markdown(f"**Teams:** {final_match['home_team']} vs {final_match['away_team']}")
             st.markdown(f"**Score:** {final_match['home_team']} {final_match['home_score']} - {final_match['away_score']} {final_match['away_team']}")
-            st.markdown(f"**Winner:** {final_match['winner'] if final_match['winner'] else 'Draw'}")
+            st.markdown(f"**Winner:** {final_match['winner']}")
