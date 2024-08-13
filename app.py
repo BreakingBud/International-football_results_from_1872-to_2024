@@ -78,10 +78,12 @@ def prepare_world_cup_data(year):
     # Handle NaN winner or penalty shootout cases
     if final_match is not None:
         if pd.isna(final_match['winner']):
-            if final_match['home_score'] == final_match['away_score'] and final_match['shootout']:
-                final_match['winner'] = f"Winner (Penalties): {final_match['home_team'] if final_match['winner'] == final_match['home_team'] else final_match['away_team']}"
+            if final_match['shootout']:
+                final_match['winner'] = f"Winner (Penalties): {final_match['home_team'] if final_match['home_score'] > final_match['away_score'] else final_match['away_team']}"
             else:
                 final_match['winner'] = 'Draw'
+        elif final_match['shootout']:
+            final_match['winner'] = f"{final_match['winner']} (Penalties)"
     
     return total_matches, total_goals, total_teams, avg_goals_per_game, final_match
 
