@@ -1,13 +1,24 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import zipfile
+import os
+
+# Define the file path and extraction directory
+zip_file_path = 'football_data_matches_scorers_shootouts.zip'
+extraction_dir = 'data/football_data/'
+
+# Extract the zip file
+if not os.path.exists(extraction_dir):
+    with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+        zip_ref.extractall(extraction_dir)
 
 # Load the datasets
 @st.cache_data
 def load_data():
-    goalscorers_df = pd.read_csv('data/football_data/goalscorers.csv')
-    results_df = pd.read_csv('data/football_data/results.csv')
-    shootouts_df = pd.read_csv('data/football_data/shootouts.csv')
+    goalscorers_df = pd.read_csv(extraction_dir + 'goalscorers.csv')
+    results_df = pd.read_csv(extraction_dir + 'results.csv')
+    shootouts_df = pd.read_csv(extraction_dir + 'shootouts.csv')
     return goalscorers_df, results_df, shootouts_df
 
 goalscorers_df, results_df, shootouts_df = load_data()
