@@ -57,9 +57,9 @@ def prepare_head_to_head_data(team1, team2, tournament, start_date, end_date):
 
 # Function to filter data for World Cup analysis
 def prepare_world_cup_data(year):
-    # Filter for World Cup matches of the selected year
+    # Filter for FIFA World Cup matches of the selected year (excluding qualifiers)
     wc_df = results_df[
-        (results_df['tournament'].str.contains('World Cup', case=False, na=False)) &
+        (results_df['tournament'] == 'FIFA World Cup') &
         (results_df['date'].dt.year == year)
     ]
     
@@ -110,7 +110,7 @@ elif menu == "Head-to-Head Analysis":
 
         # Date range selection
         min_date = results_df['date'].min().to_pydatetime()
-        max_date = results_df['date'].max().to.pydatetime()
+        max_date = results_df['date'].max().to_pydatetime()
         date_range = st.slider(
             'Select Date Range',
             min_value=min_date,
