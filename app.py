@@ -74,12 +74,15 @@ elif menu == "Head-to-Head Analysis":
     with col1:
         # Team selection
         team1 = st.selectbox('Select Team 1', results_df['home_team'].unique())
+        st.markdown("<div style='margin-bottom: 10px;'></div>", unsafe_allow_html=True)
         team2 = st.selectbox('Select Team 2', results_df['home_team'].unique())
+        st.markdown("<div style='margin-bottom: 10px;'></div>", unsafe_allow_html=True)
         
         # Tournament selection
         tournament = st.selectbox('Select Tournament', ['All'] + sorted(results_df['tournament'].unique().tolist()))
         if tournament == 'All':
             tournament = ''  # Empty string will be used to match all tournaments
+        st.markdown("<div style='margin-bottom: 10px;'></div>", unsafe_allow_html=True)
 
         # Date range selection
         min_date = results_df['date'].min().to_pydatetime()
@@ -91,8 +94,6 @@ elif menu == "Head-to-Head Analysis":
             value=(min_date, max_date),
             format="YYYY-MM-DD"
         )
-
-        start_date, end_date = date_range
 
     with col2:
         # Perform analysis
@@ -108,6 +109,11 @@ elif menu == "Head-to-Head Analysis":
         if 'outcome' in head_to_head_df.columns:
             # Pie chart for outcomes
             outcome_counts = head_to_head_df['outcome'].value_counts()
+            outcome_counts = outcome_counts.rename({
+                'Home Win': f'{team1} Win',
+                'Away Win': f'{team2} Win',
+                'Draw': 'Draw'
+            })
             fig = px.pie(outcome_counts, names=outcome_counts.index, values=outcome_counts.values, title="Head-to-Head Win Rate")
             st.plotly_chart(fig)
         else:
