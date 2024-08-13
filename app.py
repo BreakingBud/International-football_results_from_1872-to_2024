@@ -18,21 +18,32 @@ if not os.path.exists(extraction_dir):
 def load_data():
     goalscorers_df = pd.read_csv(extraction_dir + 'goalscorers.csv')
     results_df = pd.read_csv(extraction_dir + 'results.csv')
+    shootouts_df = pd.read_csv(extraction_dir + 'shootouts.csv')
     
-    # Ensure date columns are in datetime format
-    goalscorers_df['date'] = pd.to_datetime(goalscorers_df['date'], errors='coerce')
-    results_df['date'] = pd.to_datetime(results_df['date'], errors='coerce')
+    # Convert date columns to datetime format
+    results_df['date'] = pd.to_datetime(results_df['date'])
+    shootouts_df['date'] = pd.to_datetime(shootouts_df['date'])
     
-    # Drop rows where 'date' is NaT
-    goalscorers_df = goalscorers_df.dropna(subset=['date'])
-    results_df = results_df.dropna(subset=['date'])
+    # Generate outcome column to indicate the match result
+    results_df['outcome'] = results_df.apply(
+        lambda row: row['home_team'] if row['home_score'] > row['away_score']
+        else row['away_team'] if row['away_score'] > row['home_score'] else 'Draw',
+        axis=1
+    )
     
-    # Merge goalscorers_df with results_df to get tournament information
-    goalscorers_df = pd.merge(goalscorers_df, results_df[['date', 'home_team', 'away_team', 'tournament']], 
-                              on=['date', 'home_team', 'away_team'], how='left')
-    return goalscorers_df, results_df
+    # Merge results with shootouts to add shootout winner data
+    merged_df = results_df.merge(
+        shootouts_df[['date', 'home_team', 'away_team', 'winner']],
+        on=['date', 'home_team', 'away_team'], 
+        how='left'
+    )
+    
+    # Add the shootout column: True if shootout occurred, False otherwise
+    merged_df['shootout'] = merged_df['winner'].notna()
+    
+    return goalscorers_df, merged_df, shootouts_df
 
-goalscorers_df, results_df = load_data()
+goalscorers_df, results_df, shootouts_df = load_data()
 
 # Function to filter data for head-to-head analysis
 def prepare_head_to_head_data(team1, team2, tournament, start_date, end_date):
@@ -44,20 +55,11 @@ def prepare_head_to_head_data(team1, team2, tournament, start_date, end_date):
     ]
     return filtered_df
 
-# Function to filter data for player-to-player analysis
-def prepare_player_to_player_data(player1, player2, tournament, start_date, end_date):
-    filtered_df = goalscorers_df[
-        (goalscorers_df['scorer'].isin([player1, player2])) &
-        (goalscorers_df['date'].between(start_date, end_date)) &
-        (goalscorers_df['tournament'].str.contains(tournament, case=False, na=False))
-    ]
-    return filtered_df
-
 # Set up the sidebar menu
 st.sidebar.title("Navigation")
 menu = st.sidebar.radio(
     "Go to",
-    ("Introduction", "Head-to-Head Analysis", "Player-to-Player Analysis")
+    ("Introduction", "Head-to-Head Analysis")
 )
 
 if menu == "Introduction":
@@ -65,7 +67,7 @@ if menu == "Introduction":
     st.markdown("""
     ### Welcome to the Football Analysis App
     
-    This application allows you to explore historical football match data, particularly focusing on head-to-head matchups between different teams and player-to-player analysis.
+    This application allows you to explore historical football match data, particularly focusing on head-to-head matchups between different teams.
     
     Use the sidebar to navigate to different sections of the app.
     """)
@@ -129,53 +131,3 @@ elif menu == "Head-to-Head Analysis":
         if not shootout_matches.empty:
             st.markdown("### Shootout Matches:")
             st.dataframe(shootout_matches[['date', 'home_team', 'away_team', 'winner']], use_container_width=True)
-
-elif menu == "Player-to-Player Analysis":
-    st.title("Player-to-Player Analysis")
-    col1, col2 = st.columns([1, 2], gap="large")
-
-    with col1:
-        # Player selection
-        player1 = st.selectbox('Select Player 1', goalscorers_df['scorer'].unique())
-        st.markdown("<div style='margin-bottom: 10px;'></div>", unsafe_allow_html=True)
-        player2 = st.selectbox('Select Player 2', goalscorers_df['scorer'].unique())
-        st.markdown("<div style='margin-bottom: 10px;'></div>", unsafe_allow_html=True)
-        
-        # Tournament selection
-        tournament = st.selectbox('Select Tournament', ['All'] + sorted(goalscorers_df['tournament'].unique().tolist()))
-        if tournament == 'All':
-            tournament = ''  # Empty string will be used to match all tournaments
-        st.markdown("<div style='margin-bottom: 10px;'></div>", unsafe_allow_html=True)
-
-        # Date range selection
-        min_date = goalscorers_df['date'].min().to_pydatetime()
-        max_date = goalscorers_df['date'].max().to_pydatetime()
-        date_range = st.slider(
-            'Select Date Range',
-            min_value=min_date,
-            max_value=max_date,
-            value=(min_date, max_date),
-            format="YYYY-MM-DD"
-        )
-
-        start_date, end_date = date_range
-
-    with col2:
-        # Perform analysis
-        player_data_df = prepare_player_to_player_data(player1, player2, tournament, start_date, end_date)
-
-        # Goal distribution pie chart
-        player_goal_counts = player_data_df['scorer'].value_counts()
-        fig = px.pie(player_goal_counts, names=player_goal_counts.index, values=player_goal_counts.values, title="Goals Distribution")
-        st.plotly_chart(fig, use_container_width=True)
-
-        # Penalty goals count
-        penalty_goals = player_data_df[player_data_df['penalty'] == True]['scorer'].value_counts()
-        st.markdown("### Penalty Goals")
-        st.write(penalty_goals)
-
-        # Goal minute distribution
-        st.markdown("### Goal Minute Distribution")
-        goal_minutes_df = player_data_df[['scorer', 'minute']]
-        fig = px.histogram(goal_minutes_df, x='minute', color='scorer', nbins=10, title="Goal Scoring Minutes")
-        st.plotly_chart(fig, use_container_width=True)
