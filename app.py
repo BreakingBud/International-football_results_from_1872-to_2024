@@ -76,7 +76,7 @@ elif menu == "Head-to-Head Analysis":
     st.title("Head-to-Head Analysis")
 
     # Define columns for layout
-    col1, col2 = st.columns([1, 2])
+    col1, col2 = st.columns([1, 2], gap="large")
 
     with col1:
         # Team selection
@@ -93,7 +93,7 @@ elif menu == "Head-to-Head Analysis":
 
         # Date range selection
         min_date = results_df['date'].min().to_pydatetime()
-        max_date = results_df['date'].max().to_pydatetime()
+        max_date = results_df['date'].max().to.pydatetime()
         date_range = st.slider(
             'Select Date Range',
             min_value=min_date,
@@ -124,10 +124,10 @@ elif menu == "Head-to-Head Analysis":
 
         # Pie chart for outcomes
         fig = px.pie(outcome_counts, names=outcome_counts.index, values=outcome_counts.values, title="Head-to-Head Win Rate")
-        st.plotly_chart(fig)
+        st.plotly_chart(fig, use_container_width=True)
 
         # Display shootout data
         shootout_matches = head_to_head_df[head_to_head_df['shootout'] == True]
         if not shootout_matches.empty:
             st.markdown("### Shootout Matches:")
-            st.dataframe(shootout_matches[['date', 'home_team', 'away_team', 'winner']])
+            st.dataframe(shootout_matches[['date', 'home_team', 'away_team', 'winner']], use_container_width=True)
