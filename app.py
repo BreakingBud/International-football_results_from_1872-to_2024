@@ -19,6 +19,11 @@ def load_data():
     goalscorers_df = pd.read_csv(extraction_dir + 'goalscorers.csv')
     results_df = pd.read_csv(extraction_dir + 'results.csv')
     shootouts_df = pd.read_csv(extraction_dir + 'shootouts.csv')
+    
+    # Convert date columns to datetime format
+    results_df['date'] = pd.to_datetime(results_df['date'])
+    shootouts_df['date'] = pd.to_datetime(shootouts_df['date'])
+    
     return goalscorers_df, results_df, shootouts_df
 
 goalscorers_df, results_df, shootouts_df = load_data()
@@ -52,14 +57,19 @@ elif menu == "Head-to-Head Analysis":
     team2 = st.selectbox('Select Team 2', results_df['home_team'].unique())
     
     # Tournament selection
-    tournament = st.text_input('Select Tournament (Leave blank for all)', '')
-    
+    tournament = st.selectbox('Select Tournament', ['All'] + sorted(results_df['tournament'].unique().tolist()))
+    if tournament == 'All':
+        tournament = ''  # Empty string will be used to match all tournaments
+
     # Date range selection
+    min_date = results_df['date'].min()
+    max_date = results_df['date'].max()
     date_range = st.slider(
         'Select Date Range',
-        min_value=results_df['date'].min(),
-        max_value=results_df['date'].max(),
-        value=(results_df['date'].min(), results_df['date'].max())
+        min_value=min_date,
+        max_value=max_date,
+        value=(min_date, max_date),
+        format="YYYY-MM-DD"
     )
 
     start_date, end_date = date_range
