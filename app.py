@@ -23,6 +23,10 @@ def load_data():
     goalscorers_df['date'] = pd.to_datetime(goalscorers_df['date'], errors='coerce')
     results_df['date'] = pd.to_datetime(results_df['date'], errors='coerce')
     
+    # Drop rows where 'date' is NaT
+    goalscorers_df = goalscorers_df.dropna(subset=['date'])
+    results_df = results_df.dropna(subset=['date'])
+    
     # Merge goalscorers_df with results_df to get tournament information
     goalscorers_df = pd.merge(goalscorers_df, results_df[['date', 'home_team', 'away_team', 'tournament']], 
                               on=['date', 'home_team', 'away_team'], how='left')
