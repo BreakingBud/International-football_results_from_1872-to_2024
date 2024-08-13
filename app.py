@@ -109,29 +109,25 @@ elif menu == "Head-to-Head Analysis":
         total_matches = len(head_to_head_df)
         st.markdown(f"**{team1}** and **{team2}** played **{total_matches}** matches head to head.")
 
-        # Check if the DataFrame is empty
-        if head_to_head_df.empty:
-            st.warning("No data available for the selected teams, tournament, and date range.")
-        else:
-            # Show filtering information only if specific tournament is selected
-            if tournament:
-                tournament_display = tournament if tournament else "All tournaments"
-                st.markdown(f"Filtering by tournament: **{tournament_display}**")
+        # Show filtering information only if specific tournament is selected
+        if tournament:
+            tournament_display = tournament if tournament else "All tournaments"
+            st.markdown(f"Filtering by tournament: **{tournament_display}**")
 
-            # Label outcomes correctly
-            head_to_head_df['outcome_label'] = head_to_head_df['outcome'].apply(
-                lambda x: f'{team1} Win' if x == team1 else f'{team2} Win' if x == team2 else 'Draw'
-            )
+        # Label outcomes correctly
+        head_to_head_df['outcome_label'] = head_to_head_df['outcome'].apply(
+            lambda x: f'{team1} Win' if x == team1 else f'{team2} Win' if x == team2 else 'Draw'
+        )
 
-            # Correctly count unique outcomes
-            outcome_counts = head_to_head_df['outcome_label'].value_counts(dropna=False)
+        # Correctly count unique outcomes
+        outcome_counts = head_to_head_df['outcome_label'].value_counts(dropna=False)
 
-            # Pie chart for outcomes
-            fig = px.pie(outcome_counts, names=outcome_counts.index, values=outcome_counts.values, title="Win Rate")
-            st.plotly_chart(fig, use_container_width=True)
+        # Pie chart for outcomes
+        fig = px.pie(outcome_counts, names=outcome_counts.index, values=outcome_counts.values, title="Win Rate")
+        st.plotly_chart(fig, use_container_width=True)
 
-            # Display shootout data
-            shootout_matches = head_to_head_df[head_to_head_df['shootout'] == True]
-            if not shootout_matches.empty:
-                st.markdown("### Shootout Matches:")
-                st.dataframe(shootout_matches[['date', 'home_team', 'away_team', 'winner']], use_container_width=True)
+        # Display shootout data
+        shootout_matches = head_to_head_df[head_to_head_df['shootout'] == True]
+        if not shootout_matches.empty:
+            st.markdown("### Shootout Matches:")
+            st.dataframe(shootout_matches[['date', 'home_team', 'away_team', 'winner']], use_container_width=True)
