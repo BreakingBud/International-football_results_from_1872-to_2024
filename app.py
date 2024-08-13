@@ -24,6 +24,13 @@ def load_data():
     results_df['date'] = pd.to_datetime(results_df['date'])
     shootouts_df['date'] = pd.to_datetime(shootouts_df['date'])
     
+    # Generate outcome column
+    results_df['outcome'] = results_df.apply(
+        lambda row: 'Home Win' if row['home_score'] > row['away_score']
+        else 'Away Win' if row['away_score'] > row['home_score'] else 'Draw',
+        axis=1
+    )
+    
     return goalscorers_df, results_df, shootouts_df
 
 goalscorers_df, results_df, shootouts_df = load_data()
@@ -33,9 +40,14 @@ def prepare_head_to_head_data(team1, team2, tournament, start_date, end_date):
     filtered_df = results_df[
         (((results_df['home_team'] == team1) & (results_df['away_team'] == team2)) |
         ((results_df['home_team'] == team2) & (results_df['away_team'] == team1))) &
-        (results_df['tournament'].str.contains(tournament)) &
+        (results_df['tournament'].str.contains(tournament, case=False, na=False)) &
         (results_df['date'].between(start_date, end_date))
     ]
+    
+    # Logging to help diagnose issues
+    st.write(f"Filtered DataFrame Shape: {filtered_df.shape}")
+    st.write(f"Columns in Filtered DataFrame: {filtered_df.columns.tolist()}")
+    
     return filtered_df
 
 # Set up the sidebar menu
@@ -83,10 +95,14 @@ elif menu == "Head-to-Head Analysis":
     if tournament:
         st.write(f"Filtering by tournament: {tournament}")
 
-    # Pie chart for outcomes
-    outcome_counts = head_to_head_df['outcome'].value_counts()
-    fig = px.pie(outcome_counts, names=outcome_counts.index, values=outcome_counts.values, title="Head-to-Head Win Rate")
-    st.plotly_chart(fig)
+    # Ensure outcome column exists
+    if 'outcome' in head_to_head_df.columns:
+        # Pie chart for outcomes
+        outcome_counts = head_to_head_df['outcome'].value_counts()
+        fig = px.pie(outcome_counts, names=outcome_counts.index, values=outcome_counts.values, title="Head-to-Head Win Rate")
+        st.plotly_chart(fig)
+    else:
+        st.write("Error: The 'outcome' column was not found in the filtered data.")
 
     # Display shootout data
     shootout_matches = head_to_head_df[head_to_head_df['shootout'] == True]
@@ -95,3 +111,4 @@ elif menu == "Head-to-Head Analysis":
         st.dataframe(shootout_matches[['date', 'home_team', 'away_team', 'winner']])
     else:
         st.write("No shootout data available for these teams in the selected range.")
+
