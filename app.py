@@ -80,6 +80,10 @@ elif menu == "Head-to-Head Analysis":
         # Date range selection
         min_date = results_df['date'].min()
         max_date = results_df['date'].max()
+        
+        # Check for consistent data types
+        st.write(f"min_date type: {type(min_date)}, max_date type: {type(max_date)}")
+        
         date_range = st.slider(
             'Select Date Range',
             min_value=min_date,
