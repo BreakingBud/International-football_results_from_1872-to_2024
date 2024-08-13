@@ -62,8 +62,8 @@ elif menu == "Head-to-Head Analysis":
         tournament = ''  # Empty string will be used to match all tournaments
 
     # Date range selection
-    min_date = results_df['date'].min()
-    max_date = results_df['date'].max()
+    min_date = results_df['date'].min().to_pydatetime()
+    max_date = results_df['date'].max().to_pydatetime()
     date_range = st.slider(
         'Select Date Range',
         min_value=min_date,
@@ -95,4 +95,3 @@ elif menu == "Head-to-Head Analysis":
         st.dataframe(shootout_matches[['date', 'home_team', 'away_team', 'winner']])
     else:
         st.write("No shootout data available for these teams in the selected range.")
-
