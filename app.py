@@ -121,7 +121,7 @@ elif menu == "Head-to-Head Analysis":
         outcome_counts = head_to_head_df['outcome_label'].value_counts(dropna=False)
 
         # Pie chart for outcomes
-        fig = px.pie(outcome_counts, names=outcome_counts.index, values=outcome_counts.values, title="Head-to-Head Win Rate")
+        fig = px.pie(outcome_counts, names=outcome_counts.index, values=outcome_counts.values, title="Win Rate")
         st.plotly_chart(fig, use_container_width=True)
 
         # Display shootout data
