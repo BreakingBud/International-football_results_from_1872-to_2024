@@ -34,9 +34,15 @@ def load_data():
 
 goalscorers_df, results_df = load_data()
 
-# Convert min_date and max_date to datetime objects
-min_date = results_df['date'].min().to_pydatetime()
-max_date = results_df['date'].max().to_pydatetime()
+# Function to filter data for head-to-head analysis
+def prepare_head_to_head_data(team1, team2, tournament, start_date, end_date):
+    filtered_df = results_df[
+        (((results_df['home_team'] == team1) & (results_df['away_team'] == team2)) |
+        ((results_df['home_team'] == team2) & (results_df['away_team'] == team1))) &
+        (results_df['tournament'].str.contains(tournament, case=False, na=False)) &
+        (results_df['date'].between(start_date, end_date))
+    ]
+    return filtered_df
 
 # Function to filter data for player-to-player analysis
 def prepare_player_to_player_data(player1, player2, tournament, start_date, end_date):
@@ -82,6 +88,8 @@ elif menu == "Head-to-Head Analysis":
         st.markdown("<div style='margin-bottom: 10px;'></div>", unsafe_allow_html=True)
 
         # Date range selection
+        min_date = results_df['date'].min().to_pydatetime()
+        max_date = results_df['date'].max().to_pydatetime()
         date_range = st.slider(
             'Select Date Range',
             min_value=min_date,
@@ -140,6 +148,8 @@ elif menu == "Player-to-Player Analysis":
         st.markdown("<div style='margin-bottom: 10px;'></div>", unsafe_allow_html=True)
 
         # Date range selection
+        min_date = goalscorers_df['date'].min().to_pydatetime()
+        max_date = goalscorers_df['date'].max().to_pydatetime()
         date_range = st.slider(
             'Select Date Range',
             min_value=min_date,
