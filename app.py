@@ -112,8 +112,10 @@ elif menu == "Head-to-Head Analysis":
             lambda x: f'{team1} Win' if x == team1 else f'{team2} Win' if x == team2 else 'Draw'
         )
 
+        # Correctly count unique outcomes
+        outcome_counts = head_to_head_df['outcome_label'].value_counts(dropna=False)
+
         # Pie chart for outcomes
-        outcome_counts = head_to_head_df['outcome_label'].value_counts()
         fig = px.pie(outcome_counts, names=outcome_counts.index, values=outcome_counts.values, title="Head-to-Head Win Rate")
         st.plotly_chart(fig)
 
