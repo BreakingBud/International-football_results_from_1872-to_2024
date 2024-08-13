@@ -57,11 +57,14 @@ def prepare_head_to_head_data(team1, team2, tournament, start_date, end_date):
 
 # Function to filter data for World Cup analysis
 def prepare_world_cup_data(year):
-    # Filter for FIFA World Cup matches of the selected year (excluding qualifiers)
+    # Filter for FIFA World Cup matches of the selected year
     wc_df = results_df[
         (results_df['tournament'] == 'FIFA World Cup') &
         (results_df['date'].dt.year == year)
     ]
+    
+    if wc_df.empty:
+        return None, None, None, None, None
     
     # Calculate statistics
     total_matches = wc_df.shape[0]
@@ -153,21 +156,24 @@ elif menu == "World Cup Analysis":
     st.title("World Cup Analysis")
 
     # Year selection
-    year = st.selectbox('Select Year of World Cup', sorted(results_df['date'].dt.year.unique()))
+    year = st.selectbox('Select Year of World Cup', sorted(results_df[results_df['tournament'] == 'FIFA World Cup']['date'].dt.year.unique()))
 
     # Get World Cup statistics for the selected year
     total_matches, total_goals, total_teams, avg_goals_per_game, final_match = prepare_world_cup_data(year)
 
-    # Display statistics
-    st.markdown(f"### World Cup {year} Overview")
-    st.markdown(f"**Total Matches:** {total_matches}")
-    st.markdown(f"**Total Goals:** {total_goals}")
-    st.markdown(f"**Total Teams Participated:** {total_teams}")
-    st.markdown(f"**Average Goals Per Game:** {avg_goals_per_game:.2f}")
-    
-    if final_match is not None:
-        st.markdown("### Final Match Stats")
-        st.markdown(f"**Date:** {final_match['date'].strftime('%Y-%m-%d')}")
-        st.markdown(f"**Teams:** {final_match['home_team']} vs {final_match['away_team']}")
-        st.markdown(f"**Score:** {final_match['home_team']} {final_match['home_score']} - {final_match['away_score']} {final_match['away_team']}")
-        st.markdown(f"**Winner:** {final_match['winner'] if final_match['winner'] else 'Draw'}")
+    if total_matches is None:
+        st.markdown(f"### No data available for FIFA World Cup {year}.")
+    else:
+        # Display statistics
+        st.markdown(f"### World Cup {year} Overview")
+        st.markdown(f"**Total Matches:** {total_matches}")
+        st.markdown(f"**Total Goals:** {total_goals}")
+        st.markdown(f"**Total Teams Participated:** {total_teams}")
+        st.markdown(f"**Average Goals Per Game:** {avg_goals_per_game:.2f}")
+        
+        if final_match is not None:
+            st.markdown("### Final Match Stats")
+            st.markdown(f"**Date:** {final_match['date'].strftime('%Y-%m-%d')}")
+            st.markdown(f"**Teams:** {final_match['home_team']} vs {final_match['away_team']}")
+            st.markdown(f"**Score:** {final_match['home_team']} {final_match['home_score']} - {final_match['away_score']} {final_match['away_team']}")
+            st.markdown(f"**Winner:** {final_match['winner'] if final_match['winner'] else 'Draw'}")
