@@ -31,7 +31,17 @@ def load_data():
         axis=1
     )
     
-    return goalscorers_df, results_df, shootouts_df
+    # Merge results with shootouts to add shootout winner data
+    merged_df = results_df.merge(
+        shootouts_df[['date', 'home_team', 'away_team', 'winner']],
+        on=['date', 'home_team', 'away_team'], 
+        how='left'
+    )
+    
+    # Add the shootout column: True if shootout occurred, False otherwise
+    merged_df['shootout'] = merged_df['winner'].notna()
+    
+    return goalscorers_df, merged_df, shootouts_df
 
 goalscorers_df, results_df, shootouts_df = load_data()
 
@@ -43,11 +53,6 @@ def prepare_head_to_head_data(team1, team2, tournament, start_date, end_date):
         (results_df['tournament'].str.contains(tournament, case=False, na=False)) &
         (results_df['date'].between(start_date, end_date))
     ]
-    
-    # Logging to help diagnose issues
-    st.write(f"Filtered DataFrame Shape: {filtered_df.shape}")
-    st.write(f"Columns in Filtered DataFrame: {filtered_df.columns.tolist()}")
-    
     return filtered_df
 
 # Set up the sidebar menu
@@ -64,51 +69,57 @@ if menu == "Introduction":
 elif menu == "Head-to-Head Analysis":
     st.title("Head-to-Head Analysis")
 
-    # Team selection
-    team1 = st.selectbox('Select Team 1', results_df['home_team'].unique())
-    team2 = st.selectbox('Select Team 2', results_df['home_team'].unique())
-    
-    # Tournament selection
-    tournament = st.selectbox('Select Tournament', ['All'] + sorted(results_df['tournament'].unique().tolist()))
-    if tournament == 'All':
-        tournament = ''  # Empty string will be used to match all tournaments
+    col1, col2 = st.columns([1, 2])
 
-    # Date range selection
-    min_date = results_df['date'].min().to_pydatetime()
-    max_date = results_df['date'].max().to_pydatetime()
-    date_range = st.slider(
-        'Select Date Range',
-        min_value=min_date,
-        max_value=max_date,
-        value=(min_date, max_date),
-        format="YYYY-MM-DD"
-    )
+    with col1:
+        # Team selection
+        team1 = st.selectbox('Select Team 1', results_df['home_team'].unique())
+        team2 = st.selectbox('Select Team 2', results_df['home_team'].unique())
+        
+        # Tournament selection
+        tournament = st.selectbox('Select Tournament', ['All'] + sorted(results_df['tournament'].unique().tolist()))
+        if tournament == 'All':
+            tournament = ''  # Empty string will be used to match all tournaments
 
-    start_date, end_date = date_range
+        # Date range selection
+        min_date = results_df['date'].min().to_pydatetime()
+        max_date = results_df['date'].max().to_pydatetime()
+        date_range = st.slider(
+            'Select Date Range',
+            min_value=min_date,
+            max_value=max_date,
+            value=(min_date, max_date),
+            format="YYYY-MM-DD"
+        )
 
-    # Perform analysis
-    head_to_head_df = prepare_head_to_head_data(team1, team2, tournament, start_date, end_date)
+        start_date, end_date = date_range
 
-    total_matches = len(head_to_head_df)
-    st.write(f"{team1} and {team2} played {total_matches} matches head to head across all tournaments.")
-    
-    if tournament:
-        st.write(f"Filtering by tournament: {tournament}")
+    with col2:
+        # Perform analysis
+        head_to_head_df = prepare_head_to_head_data(team1, team2, tournament, start_date, end_date)
 
-    # Ensure outcome column exists
-    if 'outcome' in head_to_head_df.columns:
-        # Pie chart for outcomes
-        outcome_counts = head_to_head_df['outcome'].value_counts()
-        fig = px.pie(outcome_counts, names=outcome_counts.index, values=outcome_counts.values, title="Head-to-Head Win Rate")
-        st.plotly_chart(fig)
-    else:
-        st.write("Error: The 'outcome' column was not found in the filtered data.")
+        total_matches = len(head_to_head_df)
+        st.write(f"{team1} and {team2} played {total_matches} matches head to head across all tournaments.")
+        
+        if tournament:
+            st.write(f"Filtering by tournament: {tournament}")
 
-    # Display shootout data
-    shootout_matches = head_to_head_df[head_to_head_df['shootout'] == True]
-    if not shootout_matches.empty:
-        st.write("Shootout Matches:")
-        st.dataframe(shootout_matches[['date', 'home_team', 'away_team', 'winner']])
-    else:
-        st.write("No shootout data available for these teams in the selected range.")
+        # Ensure outcome column exists
+        if 'outcome' in head_to_head_df.columns:
+            # Pie chart for outcomes
+            outcome_counts = head_to_head_df['outcome'].value_counts()
+            fig = px.pie(outcome_counts, names=outcome_counts.index, values=outcome_counts.values, title="Head-to-Head Win Rate")
+            st.plotly_chart(fig)
+        else:
+            st.write("Error: The 'outcome' column was not found in the filtered data.")
 
+        # Display shootout data
+        if 'shootout' in head_to_head_df.columns:
+            shootout_matches = head_to_head_df[head_to_head_df['shootout'] == True]
+            if not shootout_matches.empty:
+                st.write("Shootout Matches:")
+                st.dataframe(shootout_matches[['date', 'home_team', 'away_team', 'winner']])
+            else:
+                st.write("No shootout data available for these teams in the selected range.")
+        else:
+            st.write("Error: The 'shootout' column was not found in the filtered data.")
