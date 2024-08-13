@@ -107,10 +107,12 @@ elif menu == "Head-to-Head Analysis":
         head_to_head_df = prepare_head_to_head_data(team1, team2, tournament, start_date, end_date)
 
         total_matches = len(head_to_head_df)
-        st.markdown(f"**{team1}** and **{team2}** played **{total_matches}** matches head to head across all tournaments.")
-        
+        st.markdown(f"**{team1}** and **{team2}** played **{total_matches}** matches head to head.")
+
+        # Show filtering information only if specific tournament is selected
         if tournament:
-            st.markdown(f"Filtering by tournament: **{tournament}**")
+            tournament_display = tournament if tournament else "All tournaments"
+            st.markdown(f"Filtering by tournament: **{tournament_display}**")
 
         # Label outcomes correctly
         head_to_head_df['outcome_label'] = head_to_head_df['outcome'].apply(
