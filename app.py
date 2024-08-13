@@ -19,6 +19,10 @@ def load_data():
     goalscorers_df = pd.read_csv(extraction_dir + 'goalscorers.csv')
     results_df = pd.read_csv(extraction_dir + 'results.csv')
     
+    # Ensure date columns are in datetime format
+    goalscorers_df['date'] = pd.to_datetime(goalscorers_df['date'], errors='coerce')
+    results_df['date'] = pd.to_datetime(results_df['date'], errors='coerce')
+    
     # Merge goalscorers_df with results_df to get tournament information
     goalscorers_df = pd.merge(goalscorers_df, results_df[['date', 'home_team', 'away_team', 'tournament']], 
                               on=['date', 'home_team', 'away_team'], how='left')
