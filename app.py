@@ -93,7 +93,7 @@ elif menu == "Head-to-Head Analysis":
 
         # Date range selection
         min_date = results_df['date'].min().to_pydatetime()
-        max_date = results_df['date'].max().to.pydatetime()
+        max_date = results_df['date'].max().to_pydatetime()
         date_range = st.slider(
             'Select Date Range',
             min_value=min_date,
