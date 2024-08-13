@@ -55,43 +55,11 @@ def prepare_head_to_head_data(team1, team2, tournament, start_date, end_date):
     ]
     return filtered_df
 
-# Function to filter data for World Cup analysis
-def prepare_world_cup_data(year):
-    # Filter for FIFA World Cup matches of the selected year
-    wc_df = results_df[
-        (results_df['tournament'] == 'FIFA World Cup') &
-        (results_df['date'].dt.year == year)
-    ]
-    
-    if wc_df.empty:
-        return None, None, None, None, None
-    
-    # Calculate statistics
-    total_matches = wc_df.shape[0]
-    total_goals = wc_df['home_score'].sum() + wc_df['away_score'].sum()
-    total_teams = len(pd.unique(wc_df[['home_team', 'away_team']].values.ravel('K')))
-    avg_goals_per_game = total_goals / total_matches if total_matches > 0 else 0
-    
-    # Extract final match stats
-    final_match = wc_df.iloc[-1] if not wc_df.empty else None
-    
-    # Handle NaN winner or penalty shootout cases
-    if final_match is not None:
-        if pd.isna(final_match['winner']):
-            if final_match['shootout']:
-                final_match['winner'] = f"Winner (Penalties): {final_match['home_team'] if final_match['home_score'] > final_match['away_score'] else final_match['away_team']}"
-            else:
-                final_match['winner'] = 'Draw'
-        elif final_match['shootout']:
-            final_match['winner'] = f"{final_match['winner']} (Penalties)"
-    
-    return total_matches, total_goals, total_teams, avg_goals_per_game, final_match
-
 # Set up the sidebar menu
 st.sidebar.title("Navigation")
 menu = st.sidebar.radio(
     "Go to",
-    ("Introduction", "Head-to-Head Analysis", "World Cup Analysis")
+    ("Introduction", "Head-to-Head Analysis")
 )
 
 if menu == "Introduction":
@@ -99,7 +67,7 @@ if menu == "Introduction":
     st.markdown("""
     ### Welcome to the Football Analysis App
     
-    This application allows you to explore historical football match data, particularly focusing on head-to-head matchups between different teams and World Cup analysis.
+    This application allows you to explore historical football match data, particularly focusing on head-to-head matchups between different teams.
     
     Use the sidebar to navigate to different sections of the app.
     """)
@@ -123,7 +91,7 @@ elif menu == "Head-to-Head Analysis":
 
         # Date range selection
         min_date = results_df['date'].min().to_pydatetime()
-        max_date = results_df['date'].max().to_pydatetime()
+        max_date = results_df['date'].max().to.pydatetime()
         date_range = st.slider(
             'Select Date Range',
             min_value=min_date,
@@ -161,30 +129,3 @@ elif menu == "Head-to-Head Analysis":
         if not shootout_matches.empty:
             st.markdown("### Shootout Matches:")
             st.dataframe(shootout_matches[['date', 'home_team', 'away_team', 'winner']], use_container_width=True)
-
-elif menu == "World Cup Analysis":
-    st.title("World Cup Analysis")
-
-    # Year selection - only show years where FIFA World Cup was held
-    world_cup_years = sorted(results_df[results_df['tournament'] == 'FIFA World Cup']['date'].dt.year.unique())
-    year = st.selectbox('Select Year of World Cup', world_cup_years)
-
-    # Get World Cup statistics for the selected year
-    total_matches, total_goals, total_teams, avg_goals_per_game, final_match = prepare_world_cup_data(year)
-
-    if total_matches is None:
-        st.markdown(f"### No data available for FIFA World Cup {year}.")
-    else:
-        # Display statistics
-        st.markdown(f"### World Cup {year} Overview")
-        st.markdown(f"**Total Matches:** {total_matches}")
-        st.markdown(f"**Total Goals:** {total_goals}")
-        st.markdown(f"**Total Teams Participated:** {total_teams}")
-        st.markdown(f"**Average Goals Per Game:** {avg_goals_per_game:.2f}")
-        
-        if final_match is not None:
-            st.markdown("### Final Match Stats")
-            st.markdown(f"**Date:** {final_match['date'].strftime('%Y-%m-%d')}")
-            st.markdown(f"**Teams:** {final_match['home_team']} vs {final_match['away_team']}")
-            st.markdown(f"**Score:** {final_match['home_team']} {final_match['home_score']} - {final_match['away_score']} {final_match['away_team']}")
-            st.markdown(f"**Winner:** {final_match['winner']}")
