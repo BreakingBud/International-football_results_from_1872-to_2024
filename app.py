@@ -8,7 +8,7 @@ import os
 zip_file_path = 'football_data_matches_scorers_shootouts.zip'
 extraction_dir = 'data/football_data/'
 
-# Extract the zip file
+# Extract the zip file if it hasn't been extracted yet
 if not os.path.exists(extraction_dir):
     with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
         zip_ref.extractall(extraction_dir)
@@ -45,7 +45,7 @@ def load_data():
 
 goalscorers_df, results_df, shootouts_df = load_data()
 
-# Prepare data for head-to-head analysis
+# Function to filter data for head-to-head analysis
 def prepare_head_to_head_data(team1, team2, tournament, start_date, end_date):
     filtered_df = results_df[
         (((results_df['home_team'] == team1) & (results_df['away_team'] == team2)) |
@@ -64,14 +64,23 @@ menu = st.sidebar.radio(
 
 if menu == "Introduction":
     st.title("Football Analysis App")
-    st.write("Welcome to the Football Analysis App. Use the sidebar to navigate to different sections of the app.")
+    st.markdown("""
+    ### Welcome to the Football Analysis App
+    
+    This application allows you to explore historical football match data, particularly focusing on head-to-head matchups between different teams.
+    
+    Use the sidebar to navigate to different sections of the app.
+    """)
     
 elif menu == "Head-to-Head Analysis":
     st.title("Head-to-Head Analysis")
 
+    # Define columns for layout
     col1, col2 = st.columns([1, 2])
 
     with col1:
+        st.markdown("### Select Teams and Filters")
+        
         # Team selection
         team1 = st.selectbox('Select Team 1', results_df['home_team'].unique())
         st.markdown("<div style='margin-bottom: 10px;'></div>", unsafe_allow_html=True)
@@ -98,14 +107,16 @@ elif menu == "Head-to-Head Analysis":
         start_date, end_date = date_range
 
     with col2:
+        st.markdown("### Analysis Results")
+
         # Perform analysis
         head_to_head_df = prepare_head_to_head_data(team1, team2, tournament, start_date, end_date)
 
         total_matches = len(head_to_head_df)
-        st.write(f"{team1} and {team2} played {total_matches} matches head to head across all tournaments.")
+        st.markdown(f"**{team1}** and **{team2}** played **{total_matches}** matches head to head across all tournaments.")
         
         if tournament:
-            st.write(f"Filtering by tournament: {tournament}")
+            st.markdown(f"Filtering by tournament: **{tournament}**")
 
         # Label outcomes correctly
         head_to_head_df['outcome_label'] = head_to_head_df['outcome'].apply(
@@ -122,6 +133,6 @@ elif menu == "Head-to-Head Analysis":
         # Display shootout data
         shootout_matches = head_to_head_df[head_to_head_df['shootout'] == True]
         if not shootout_matches.empty:
-            st.write("Shootout Matches:")
+            st.markdown("### Shootout Matches:")
             st.dataframe(shootout_matches[['date', 'home_team', 'away_team', 'winner']])
 
