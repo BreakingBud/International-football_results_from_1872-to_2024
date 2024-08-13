@@ -73,8 +73,6 @@ if menu == "Introduction":
     """)
     
 elif menu == "Head-to-Head Analysis":
-    st.title("Head-to-Head Analysis")
-
     # Define columns for layout
     col1, col2 = st.columns([1, 2], gap="large")
 
