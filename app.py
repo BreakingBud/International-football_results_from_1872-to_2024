@@ -70,8 +70,8 @@ elif menu == "Head-to-Head Analysis":
         st.markdown("<div style='margin-bottom: 10px;'></div>", unsafe_allow_html=True)
 
         # Date range selection
-        min_date = results_df['date'].min().to_pydatetime()
-        max_date = results_df['date'].max().to.pydatetime()
+        min_date = results_df['date'].min()
+        max_date = results_df['date'].max()
         date_range = st.slider(
             'Select Date Range',
             min_value=min_date,
@@ -131,8 +131,8 @@ elif menu == "Player-to-Player Analysis":
         st.markdown("<div style='margin-bottom: 10px;'></div>", unsafe_allow_html=True)
 
         # Date range selection
-        min_date = goalscorers_df['date'].min().to_pydatetime()
-        max_date = goalscorers_df['date'].max().to.pydatetime()
+        min_date = goalscorers_df['date'].min()
+        max_date = goalscorers_df['date'].max()
         date_range = st.slider(
             'Select Date Range',
             min_value=min_date,
