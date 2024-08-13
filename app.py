@@ -24,7 +24,7 @@ def load_data():
     results_df['date'] = pd.to_datetime(results_df['date'])
     shootouts_df['date'] = pd.to_datetime(shootouts_df['date'])
     
-    # Generate outcome column
+    # Generate outcome column to indicate the match result
     results_df['outcome'] = results_df.apply(
         lambda row: row['home_team'] if row['home_score'] > row['away_score']
         else row['away_team'] if row['away_score'] > row['home_score'] else 'Draw',
@@ -79,8 +79,6 @@ elif menu == "Head-to-Head Analysis":
     col1, col2 = st.columns([1, 2])
 
     with col1:
-        st.markdown("### Select Teams and Filters")
-        
         # Team selection
         team1 = st.selectbox('Select Team 1', results_df['home_team'].unique())
         st.markdown("<div style='margin-bottom: 10px;'></div>", unsafe_allow_html=True)
@@ -107,8 +105,6 @@ elif menu == "Head-to-Head Analysis":
         start_date, end_date = date_range
 
     with col2:
-        st.markdown("### Analysis Results")
-
         # Perform analysis
         head_to_head_df = prepare_head_to_head_data(team1, team2, tournament, start_date, end_date)
 
@@ -135,4 +131,3 @@ elif menu == "Head-to-Head Analysis":
         if not shootout_matches.empty:
             st.markdown("### Shootout Matches:")
             st.dataframe(shootout_matches[['date', 'home_team', 'away_team', 'winner']])
-
