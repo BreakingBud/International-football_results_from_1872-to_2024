@@ -26,8 +26,8 @@ def load_data():
     
     # Generate outcome column
     results_df['outcome'] = results_df.apply(
-        lambda row: 'Home Win' if row['home_score'] > row['away_score']
-        else 'Away Win' if row['away_score'] > row['home_score'] else 'Draw',
+        lambda row: row['home_team'] if row['home_score'] > row['away_score']
+        else row['away_team'] if row['away_score'] > row['home_score'] else 'Draw',
         axis=1
     )
     
@@ -107,27 +107,19 @@ elif menu == "Head-to-Head Analysis":
         if tournament:
             st.write(f"Filtering by tournament: {tournament}")
 
-        # Ensure outcome column exists
-        if 'outcome' in head_to_head_df.columns:
-            # Pie chart for outcomes
-            outcome_counts = head_to_head_df['outcome'].value_counts()
-            outcome_counts = outcome_counts.rename({
-                'Home Win': f'{team1} Win',
-                'Away Win': f'{team2} Win',
-                'Draw': 'Draw'
-            })
-            fig = px.pie(outcome_counts, names=outcome_counts.index, values=outcome_counts.values, title="Head-to-Head Win Rate")
-            st.plotly_chart(fig)
-        else:
-            st.write("Error: The 'outcome' column was not found in the filtered data.")
+        # Label outcomes correctly
+        head_to_head_df['outcome_label'] = head_to_head_df['outcome'].apply(
+            lambda x: f'{team1} Win' if x == team1 else f'{team2} Win' if x == team2 else 'Draw'
+        )
+
+        # Pie chart for outcomes
+        outcome_counts = head_to_head_df['outcome_label'].value_counts()
+        fig = px.pie(outcome_counts, names=outcome_counts.index, values=outcome_counts.values, title="Head-to-Head Win Rate")
+        st.plotly_chart(fig)
 
         # Display shootout data
-        if 'shootout' in head_to_head_df.columns:
-            shootout_matches = head_to_head_df[head_to_head_df['shootout'] == True]
-            if not shootout_matches.empty:
-                st.write("Shootout Matches:")
-                st.dataframe(shootout_matches[['date', 'home_team', 'away_team', 'winner']])
-            else:
-                st.write("No shootout data available for these teams in the selected range.")
-        else:
-            st.write("Error: The 'shootout' column was not found in the filtered data.")
+        shootout_matches = head_to_head_df[head_to_head_df['shootout'] == True]
+        if not shootout_matches.empty:
+            st.write("Shootout Matches:")
+            st.dataframe(shootout_matches[['date', 'home_team', 'away_team', 'winner']])
+
