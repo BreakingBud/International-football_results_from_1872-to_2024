@@ -18,6 +18,10 @@ if not os.path.exists(extraction_dir):
 def load_data():
     goalscorers_df = pd.read_csv(extraction_dir + 'goalscorers.csv')
     results_df = pd.read_csv(extraction_dir + 'results.csv')
+    
+    # Merge goalscorers_df with results_df to get tournament information
+    goalscorers_df = pd.merge(goalscorers_df, results_df[['date', 'home_team', 'away_team', 'tournament']], 
+                              on=['date', 'home_team', 'away_team'], how='left')
     return goalscorers_df, results_df
 
 goalscorers_df, results_df = load_data()
@@ -67,7 +71,7 @@ elif menu == "Head-to-Head Analysis":
 
         # Date range selection
         min_date = results_df['date'].min().to_pydatetime()
-        max_date = results_df['date'].max().to_pydatetime()
+        max_date = results_df['date'].max().to.pydatetime()
         date_range = st.slider(
             'Select Date Range',
             min_value=min_date,
