@@ -95,6 +95,8 @@ elif menu == "Head-to-Head Analysis":
             format="YYYY-MM-DD"
         )
 
+        start_date, end_date = date_range
+
     with col2:
         # Perform analysis
         head_to_head_df = prepare_head_to_head_data(team1, team2, tournament, start_date, end_date)
